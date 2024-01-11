@@ -1,4 +1,5 @@
 <?php
+namespace Model;
 
 // Conexión DB
 
