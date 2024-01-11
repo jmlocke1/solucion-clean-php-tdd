@@ -3,6 +3,10 @@ namespace App\config;
 
 class Config {
 	/**
+     * Definimos la codificación de los caracteres
+     */
+    const DB_ENCODE = 'utf8';
+	/**
      * Servidor de la base de datos
      */
     const DB_HOST = ConfigLocal::DB_HOST;
