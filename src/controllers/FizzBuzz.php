@@ -1,5 +1,5 @@
 <?php
-
+namespace Controller;
 
 class FizzBuzz {
 	public function execute($value) {
