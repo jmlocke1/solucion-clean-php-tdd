@@ -54,12 +54,31 @@ class UserAuthModel {
 		if(!is_null($this->id)){
 			$validate = $validate && is_int($this->id) && $this->id > 0;
 		}
-		$validate = $validate && !empty($this->username) && is_string($this->username);
-		$validate = $validate && !empty($this->email) && is_string($this->email);
-		$validate = $validate && !empty($this->password) && is_string($this->password);
+		$validate = $validate && !empty(trim($this->username)) && is_string($this->username) && !$this->isNumber($this->username);
+		$validate = $validate && !empty(trim($this->email)) && $this->isEmail($this->email);
+		$validate = $validate && !empty(trim($this->password)) && is_string($this->password);
 		return $validate;
 	}
 
+	protected static function isNumber($value): bool{
+		$val = preg_match('/^-?\d+(\.\d+)?$/', $value);
+		return $val === 1;
+	}
+
+	protected static function isEmail($value): bool{
+		$val =filter_var($value, FILTER_VALIDATE_EMAIL);
+		if(is_bool($val)) return $val;
+		else return is_string($val);
+	}
+
+	/**
+	 * Devuelve un array con los datos de todos los usuarios, con los
+	 * límites establecidos por parámetro
+	 *
+	 * @param integer $limit
+	 * @param integer $offset
+	 * @return void
+	 */
 	public function getUsers($limit = 50, $offset = 0){
 		$query = "SELECT * FROM " . self::TABLENAME . " LIMIT :limit OFFSET :offset";
 		$values = [
