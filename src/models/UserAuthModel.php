@@ -34,6 +34,14 @@ class UserAuthModel {
 	// register(){} Correos únicos
 	// login(){}
 	public function register(string $username, string $email, string $password): bool {
+		$this->username = $username;
+		$this->email = $email;
+		$this->password = $password;
+		$validated = $this->validate();
+		return false;
+	}
+
+	public function validate(): bool{
 		return false;
 	}
 

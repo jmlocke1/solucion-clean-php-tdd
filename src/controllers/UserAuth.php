@@ -19,6 +19,7 @@ class UserAuth {
 	}
 	public function register(string $username, string $email, string $password): bool {
 		$user = new UserAuthModel(null, $this->db);
-		return false;
+		$registered = $user->register($username, $email, $password);
+		return $registered;
 	}
 }

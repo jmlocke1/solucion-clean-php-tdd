@@ -9,4 +9,10 @@ class UserAuthModelTest extends TestCase {
 		$registrado = $user->register('Pepe', 'pepe@pepeillo.com', 'yomismo');
 		$this->assertTrue($registrado);
 	}
+
+	public function testValidate() {
+		$user = new UserAuthModel();
+		$validated = $user->validate();
+		$this->assertTrue($validated);
+	}
 }
