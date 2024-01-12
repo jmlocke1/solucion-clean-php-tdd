@@ -6,7 +6,7 @@ use App\util\Klog;
 use App\config\Config;
 
 class DB {
-	protected static $conexion;
+	public static $conexion;
     protected static $msg;
     protected static $affectedRows;
 

@@ -2,6 +2,7 @@
 require_once __DIR__."/../../src/config/app.php";
 
 use Controller\UserAuth;
+use Model\UserAuthModel;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -14,7 +15,8 @@ use PHPUnit\Framework\TestCase;
 
 class UserAuthTest extends TestCase {
 	public function testRegister(){
-		$user = new UserAuth();
+		$user = new UserAuthModel();
+		
 		$registrado = $user->register('Pepe', 'pepe@pepeillo.com', 'yomismo');
 		$this->assertTrue($registrado);
 	}

@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__."/../../src/controllers/FizzBuzz.php";
 
+
+use Controller\FizzBuzz;
 use PHPUnit\Framework\TestCase;
 
 /**
