@@ -41,8 +41,23 @@ class UserAuthModel {
 		return false;
 	}
 
+	/**
+	 * Función de validación del modelo.
+	 * Es una función muy sencilla, no genera mensajes de
+	 * error personalizados, dado que el requisito es que
+	 * dé un error genérico en caso de fallo
+	 *
+	 * @return boolean
+	 */
 	public function validate(): bool{
-		return false;
+		$validate = true;
+		if(!is_null($this->id)){
+			$validate = $validate && is_int($this->id) && $this->id > 0;
+		}
+		$validate = $validate && !empty($this->username) && is_string($this->username);
+		$validate = $validate && !empty($this->email) && is_string($this->email);
+		$validate = $validate && !empty($this->password) && is_string($this->password);
+		return $validate;
 	}
 
 	public function getUsers($limit = 50, $offset = 0){

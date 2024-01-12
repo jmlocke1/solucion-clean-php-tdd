@@ -12,6 +12,9 @@ class UserAuthModelTest extends TestCase {
 
 	public function testValidate() {
 		$user = new UserAuthModel();
+		$user->username = 'Pepe';
+		$user->email = 'pepe@pepeillo.com';
+		$user->password = 'yomismo';
 		$validated = $user->validate();
 		$this->assertTrue($validated);
 	}
