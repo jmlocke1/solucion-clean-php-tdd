@@ -1,7 +1,11 @@
 <?php
+namespace Test\models;
+
+require_once __DIR__."/../../src/config/app.php";
 
 use Model\UserAuthModel;
 use PHPUnit\Framework\TestCase;
+use Test\models\database\DBMock;
 
 class UserAuthModelPrivateToPublic extends UserAuthModel {
 	public static function isNumber($value) : bool {
@@ -12,7 +16,7 @@ class UserAuthModelPrivateToPublic extends UserAuthModel {
 		return parent::isEmail($value);
 	}
 }
-class UserAuthModelTest extends TestCase {
+class UserAuthModelTest extends DBMock {
 	public $user;
 	public function setUp(): void {
 		$datos = [
@@ -135,6 +139,36 @@ class UserAuthModelTest extends TestCase {
 			['pepe@pepeillocom'],
 			['pepepepeillo.com'],
 			['568.0987'],
+		];
+	}
+
+	/**
+	 * Undocumented function
+	 *
+	 * @param [type] $query
+	 * @param [type] $params
+	 * @param [type] $return
+	 * @return void
+	 * @dataProvider getData
+	 */
+	public function testGet($query, $values, $return){
+		// Creamos el mock de la base de datos
+		$db = $this->createMockForSelectAssoc($query, $values, $return);
+		// Creamos el objeto UserAuthModel y obtenemos un usuario
+		$userModel = new UserAuthModel(null, $db);
+		$user = $userModel->get($values[':propertyUser']);
+		// Comprobaciones de clase
+		
+		$this->assertSame(UserAuthModel::class, $user::class);
+		$this->assertSame($db::class, $user->db::class);
+	}
+
+	public static function getData(){
+		$query = "SELECT * FROM user WHERE id = :propertyUser OR username = :propertyUser OR email = :propertyUser";
+		return [
+			[$query, [':propertyUser' => 1], self::getDataUser('josemi')],
+			[$query, [':propertyUser' => 'josemi'], self::getDataUser('josemi')],
+			[$query, [':propertyUser' => 'josemi@josemi.com'], self::getDataUser('josemi')],
 		];
 	}
 

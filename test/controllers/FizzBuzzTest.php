@@ -1,5 +1,5 @@
 <?php
-
+namespace Test\controllers;
 
 use Controller\FizzBuzz;
 use PHPUnit\Framework\TestCase;

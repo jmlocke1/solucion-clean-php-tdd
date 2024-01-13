@@ -1,8 +1,8 @@
 <?php
 namespace Model\database;
-
+require_once __DIR__."/../../config/app.php";
 use PDO;
-use App\util\Klog;
+use Util\Klog;
 use App\config\Config;
 
 class DB {

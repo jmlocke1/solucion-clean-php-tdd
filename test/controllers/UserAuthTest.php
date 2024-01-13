@@ -1,4 +1,5 @@
 <?php
+namespace Test\controllers;
 require_once __DIR__."/../../src/config/app.php";
 
 use Controller\UserAuth;

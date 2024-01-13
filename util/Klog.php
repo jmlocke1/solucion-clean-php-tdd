@@ -1,5 +1,5 @@
 <?php
-namespace App\util;
+namespace Util;
 
 use Katzgrau\KLogger\Logger;
 use Psr\Log\LogLevel;

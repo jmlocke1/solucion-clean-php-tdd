@@ -1,5 +1,7 @@
 <?php
 namespace Model;
+require_once __DIR__."/../config/app.php";
+
 
 use Model\database\DB;
 
@@ -79,13 +81,35 @@ class UserAuthModel {
 	 * @param integer $offset
 	 * @return void
 	 */
-	public function getUsers($limit = 50, $offset = 0){
-		$query = "SELECT * FROM " . self::TABLENAME . " LIMIT :limit OFFSET :offset";
+	public function getUsers(int $limit = 0, int $offset = 0){
+		$query = "SELECT * FROM " . self::TABLENAME;
+		if($limit > 0){
+			$query .= " LIMIT {$limit} OFFSET {$offset}";
+		}
 		$values = [
-			':limit' => $limit,
-			':offset' => $offset
+			':limit' => $limit
 		];
+		$result=$this->db->selectAssoc($query);
+		return $this->getObjects($result, $this->db);
+	}
+
+
+	public function get($propertyUser): static{
+		$query = "SELECT * FROM " . self::TABLENAME . " WHERE ";
+		$query .= "id = :propertyUser OR ";
+		$query .= "username = :propertyUser OR ";
+		$query .= "email = :propertyUser";
+		$values = [':propertyUser' => $propertyUser];
 		$result=$this->db->selectAssoc($query, $values);
-		return $result;
+		$data = array_shift($result);
+		return new $this($data, $this->db);
+	}
+
+	protected function getObjects(array $data): array {
+		$objects = [];
+		foreach($data as $dataObject){
+			$objects[] = new $this($dataObject, $this->db);
+		}
+		return $objects;
 	}
 }
