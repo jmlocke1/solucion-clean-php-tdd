@@ -161,6 +161,12 @@ class UserAuthModelTest extends DBMock {
 		
 		$this->assertSame(UserAuthModel::class, $user::class);
 		$this->assertSame($db::class, $user->db::class);
+		// Comprobación de datos
+		$userData = self::$dataUsers[$user->username];
+		$this->assertSame($userData['id'], $user->id);
+		$this->assertSame($userData['username'], $user->username);
+		$this->assertSame($userData['email'], $user->email);
+		$this->assertSame($userData['password'], $user->password);
 	}
 
 	public static function getData(){
@@ -169,7 +175,49 @@ class UserAuthModelTest extends DBMock {
 			[$query, [':propertyUser' => 1], self::getDataUser('josemi')],
 			[$query, [':propertyUser' => 'josemi'], self::getDataUser('josemi')],
 			[$query, [':propertyUser' => 'josemi@josemi.com'], self::getDataUser('josemi')],
+			[$query, [':propertyUser' => 2], self::getDataUser('pacorro')],
+			[$query, [':propertyUser' => 'pacorro'], self::getDataUser('pacorro')],
+			[$query, [':propertyUser' => 'pacorro@pacorro.com'], self::getDataUser('pacorro')],
 		];
 	}
+	/**
+	 * Undocumented function
+	 *
+	 * @param [type] $query
+	 * @param [type] $params
+	 * @param [type] $return
+	 * @return void
+	 * @dataProvider getDataWrongParams
+	 */
+	public function testGetWrongParams($query, $values, $return){
+		// Creamos el mock de la base de datos
+		$db = $this->createMockForSelectAssoc($query, $values, $return);
+		// Creamos el objeto UserAuthModel y obtenemos un usuario
+		$userModel = new UserAuthModel(null, $db);
+		$user = $userModel->get($values[':propertyUser']);
+		// Comprobaciones de clase
+		
+		$this->assertSame(UserAuthModel::class, $user::class);
+		$this->assertSame($db::class, $user->db::class);
+		// Comprobación de datos
+		$this->assertSame(null, $user->id);
+		$this->assertSame('', $user->username);
+		$this->assertSame('', $user->email);
+		$this->assertSame('', $user->password);
+	}
+
+	public static function getDataWrongParams(){
+		$query = "SELECT * FROM user WHERE id = :propertyUser OR username = :propertyUser OR email = :propertyUser";
+		return [
+			[$query, [':propertyUser' => 3], []],
+			[$query, [':propertyUser' => 'joseMiguel'], []],
+			[$query, [':propertyUser' => 'josemijosemi.com'], []],
+			[$query, [':propertyUser' => 5], []],
+			[$query, [':propertyUser' => 'pacorroPaque'], []],
+			[$query, [':propertyUser' => 'pacorro128@pacorro.com'], []],
+		];
+	}
+
+	
 
 }
