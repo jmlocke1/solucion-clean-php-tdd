@@ -52,6 +52,10 @@ class UserAuthModel {
 		return $validated;
 	}
 
+	public static function login(string $email, string $pasword): static{
+		return new static();
+	}
+
 	public static function hashPassword(string $password): string {
 		return password_hash($password, PASSWORD_DEFAULT);
 	}

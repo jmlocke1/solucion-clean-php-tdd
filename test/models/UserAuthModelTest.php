@@ -157,6 +157,25 @@ class UserAuthModelTest extends DBMock {
 	/**
 	 * Undocumented function
 	 *
+	 * @param [type] $email
+	 * @param [type] $password
+	 * @return void
+	 * @dataProvider loginData
+	 */
+	public function testLogin($email, $password) {
+		$user = UserAuthModelPrivateToPublic::login($email, $password);
+		$this->assertTrue($user->validate());
+	}
+
+	public static function loginData(){
+		return [
+			['josemi@josemi.com', 'Josemi123']
+		];
+	}
+
+	/**
+	 * Undocumented function
+	 *
 	 * @dataProvider passwordsToHash
 	 */
 	public function testHassPassword($password){
