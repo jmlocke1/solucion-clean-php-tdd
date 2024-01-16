@@ -15,6 +15,14 @@ class UserAuthModelPrivateToPublic extends UserAuthModel {
 	public static function isEmail($value) : bool {
 		return parent::isEmail($value);
 	}
+
+	public function update(): bool {
+		return parent::update();
+	}
+
+	public function insert(): bool {
+		return parent::insert();
+	}
 }
 class UserAuthModelTest extends DBMock {
 	public $user;
@@ -352,4 +360,13 @@ class UserAuthModelTest extends DBMock {
 		];
 	}
 
+	public function testUpdate(){
+		$user = new UserAuthModelPrivateToPublic();
+		$this->assertTrue($user->update());
+	}
+
+	public function testInsert(){
+		$user = new UserAuthModelPrivateToPublic();
+		$this->assertTrue($user->insert());
+	}
 }

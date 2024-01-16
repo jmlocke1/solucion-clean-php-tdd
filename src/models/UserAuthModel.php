@@ -45,7 +45,9 @@ class UserAuthModel {
 		$this->email = $email;
 		$this->password = $password;
 		$validated = $this->validate();
-		
+		if($validated){
+			$this->password = self::hashPassword($password);
+		}
 		return false;
 	}
 
@@ -135,5 +137,37 @@ class UserAuthModel {
 
 	protected static function hayDB(){
 		if(!isset(self::$db)) self::$db = DB::getDB();
+	}
+
+	public function save(){
+		if(isset($this->id)){
+			return $this->update();
+		}else{
+			return $this->insert();
+		}
+	}
+
+	protected function update(): bool {
+		$query = "UPDATE ". self::TABLENAME . " SET username=:username, email=:email, password=:password WHERE id=:id LIMIT 1";
+		$values = [
+			'id' => $this->id,
+			'username' => $this->username,
+			'email' => $this->email,
+			'password' => $this->password
+		];
+
+		// return self::$db->insertUpdateQuery($query, $values);
+		return false;
+	}
+
+	protected function insert(): bool {
+		$query = "INSERT INTO ". self::TABLENAME ." (username, email, password) VALUES (:username, :email, :password)";
+		$values = [
+			'username' => $this->username,
+			'email' => $this->email,
+			'password' => $this->password
+		];
+		// return self::$db->insertUpdateQuery($query, $values);
+		return false;
 	}
 }

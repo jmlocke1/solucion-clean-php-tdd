@@ -93,6 +93,19 @@ class DB {
         return $stmt;
     }
 
+    /**
+     * Función para insertar o actualizar un registro
+     *
+     * @param string $sql
+     * @param array|null $values
+     * @param boolean $multiInsert
+     * @return boolean  true si ha habido éxito en la inserción/actualización
+     */
+    public function insertUpdateQuery(string $sql, array $values = null, bool $multiInsert = false): bool {
+        $this->ejecutarConsulta($sql, $values, $multiInsert);
+        return isset(self::$msg);
+    }
+
 	/**
      * Ejecuta una consulta select y retorna un array asociativo en cada fila
      * 
