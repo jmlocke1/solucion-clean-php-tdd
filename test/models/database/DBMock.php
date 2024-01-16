@@ -33,6 +33,16 @@ class DBMock extends TestCase {
 		return $db;
 	}
 
+	public function createMockForMethodWithoutEntries($method, $return, $db = null) {
+		if(is_null($db)) $db = $this->createMock(DB::class);
+		
+		$db->expects($this->any())
+			->method($method)
+			->willReturn($return);
+		return $db;
+	}
+
+
 	public static function getDataUser($username): array {
 		return [self::getCloneUserData($username)];
 	}

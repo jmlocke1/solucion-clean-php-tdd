@@ -17,9 +17,18 @@ class UserAuth {
 		 */
 		$this->db = $db;
 	}
-	public function register(string $username, string $email, string $password): bool {
-		$user = new UserAuthModel(null, $this->db);
+	public static function register(string $username, string $email, string $password): bool {
+		$user = new UserAuthModel();
 		$registered = $user->register($username, $email, $password);
-		return $registered;
+		$saved = false;
+		if($registered){
+			$saved = $user->save();
+		}
+		if($registered && $saved){
+			echo "Usuario registrado con éxito";
+		}else{
+			echo "Ha ocurrido un error. Usuario no registrado";
+		}
+		return $registered && $saved;
 	}
 }

@@ -172,9 +172,8 @@ class UserAuthModelTest extends DBMock {
 		// Configuramos el método para el caso de que rehashee el password
 		// No testeamos las entradas, pues el nuevo hash no podemos
 		// saberlo aún
-		$db->expects($this->any())
-			->method('insertUpdateQuery')
-			->willReturn($result);
+		$db = $this->createMockForMethodWithoutEntries('insertUpdateQuery', $result, $db);
+		
 		UserAuthModel::$db = $db;
 		$logged = $user->login($email, $password);
 		$this->assertSame($result, $logged);
