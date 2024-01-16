@@ -22,4 +22,6 @@ class Config {
      * Contraseña del usuario de la base de datos
      */
     const DB_PASSWORD = ConfigLocal::DB_PASSWORD;
+
+    const PASSWORD_ALGORITHM = PASSWORD_DEFAULT;
 }

@@ -162,14 +162,95 @@ class UserAuthModelTest extends DBMock {
 	 * @return void
 	 * @dataProvider loginData
 	 */
-	public function testLogin($email, $password) {
-		$user = UserAuthModelPrivateToPublic::login($email, $password);
-		$this->assertTrue($user->validate());
+	public function testLogin($email, $password, $dataUser, $result) {
+		$user = new UserAuthModelPrivateToPublic();
+		$queryGet = "SELECT * FROM user WHERE id = :propertyUser OR username = :propertyUser OR email = :propertyUser";
+		$valGet = [':propertyUser' => $email];
+		
+		
+		$db = $this->createMockForMethod('selectAssoc', $queryGet, $valGet, $dataUser);
+		// Configuramos el método para el caso de que rehashee el password
+		// No testeamos las entradas, pues el nuevo hash no podemos
+		// saberlo aún
+		$db->expects($this->any())
+			->method('insertUpdateQuery')
+			->willReturn($result);
+		UserAuthModel::$db = $db;
+		$logged = $user->login($email, $password);
+		$this->assertSame($result, $logged);
 	}
 
 	public static function loginData(){
 		return [
-			['josemi@josemi.com', 'Josemi123']
+			[
+				'josemi@josemi.com',
+				'Josemi123',
+				[
+					[
+						'id' => 1,
+						'username' => 'josemi',
+						'email' => 'josemi@josemi.com',
+						'password' => '$2y$10$ISWn21sOxa8Z/qovOFo3L.nvk8CkgYyo7UYhrUr/779vlqNvG2INK'
+					],
+				],
+				
+				true
+			],
+			[
+				'pacorro@pacorro.com',
+				'paCorro123456',
+				[
+					[
+						'id' => 2,
+						'username' => 'pacorro',
+						'email' => 'pacorro@pacorro.com',
+						'password' => '$2y$10$iPe4shZQS5cac2uZQiFV9e4QN3pvznkL3u88r4Q1u9PW7HL90fRPa'
+					]
+					
+				],
+				true
+			],
+			[	// Usuario con contraseña incorrecta
+				'josemi@josemi.com',
+				'Josemi12345',
+				[
+					[
+						'id' => 1,
+						'username' => 'josemi',
+						'email' => 'josemi@josemi.com',
+						'password' => '$2y$10$ISWn21sOxa8Z/qovOFo3L.nvk8CkgYyo7UYhrUr/779vlqNvG2INK'
+					],
+				],
+				
+				false
+			],
+			[	// Usuario con contraseña incorrecta
+				'pacorro@pacorro.com',
+				'paCorro1234567890',
+				[
+					[
+						'id' => 2,
+						'username' => 'pacorro',
+						'email' => 'pacorro@pacorro.com',
+						'password' => '$2y$10$iPe4shZQS5cac2uZQiFV9e4QN3pvznkL3u88r4Q1u9PW7HL90fRPa'
+					]
+					
+				],
+				false
+			],
+			[	// Usuario que no existe
+				'josemi2@josemi.com',
+				'Josemi123',
+				[],
+				
+				false
+			],
+			[	// Usuario que no existe
+				'pacorro2@pacorro.com',
+				'paCorro123456',
+				[],
+				false
+			],
 		];
 	}
 

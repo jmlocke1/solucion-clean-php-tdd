@@ -23,8 +23,9 @@ class DBMock extends TestCase {
 	];
 	public static $db;
 
-	public function createMockForMethod($method, $query, $values, $return) {
-		$db = $this->createMock(DB::class);
+	public function createMockForMethod($method, $query, $values, $return, $db = null) {
+		if(is_null($db)) $db = $this->createMock(DB::class);
+		
 		$db->expects($this->any())
 			->method($method)
 			->with($query, $values)

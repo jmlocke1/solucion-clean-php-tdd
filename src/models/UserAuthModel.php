@@ -2,8 +2,9 @@
 namespace Model;
 require_once __DIR__."/../config/app.php";
 
-
+use App\config\Config;
 use Model\database\DB;
+use Util\Klog;
 
 // Conexión DB
 
@@ -52,12 +53,36 @@ class UserAuthModel {
 		return $validated;
 	}
 
-	public static function login(string $email, string $pasword): static{
-		return new static();
+	public function login(string $email, string $password): bool {
+		$user = static::get($email);
+		$logged = false;
+		if($logged = password_verify($password, $user->password)){
+			$this->id = $user->id;
+			$this->username = $user->username;
+			$this->email = $user->email;
+			$this->password = $user->password;
+			$this->needRehash($password);
+		}
+		return $logged;
+	}
+
+	/**
+	 * Función que comprueba si el password necesita una nueva
+	 * codificación. Si la necesita, la codifica y salva el objeto
+	 *
+	 * @param [type] $password
+	 * @return void
+	 */
+	protected function needRehash($password){
+		if(password_needs_rehash($this->password, Config::PASSWORD_ALGORITHM)){
+			$this->password = self::hashPassword($password);
+			$validated = $this->validate();
+			$this->save();
+		}
 	}
 
 	public static function hashPassword(string $password): string {
-		return password_hash($password, PASSWORD_DEFAULT);
+		return password_hash($password, Config::PASSWORD_ALGORITHM);
 	}
 
 	/**
@@ -91,7 +116,16 @@ class UserAuthModel {
 		else return is_string($val);
 	}
 
-	
+	/**
+	 * Función que obtiene un usuario de la base de datos, si éste existe.
+	 * El parámetro puede ser el id, username o email del usuario, 
+	 * cualquiera de esos tres.
+	 * Devuelve un objeto UserAutModel (o cualquier otra clase hija que lo extienda),
+	 * el cual puede estar vacío o no, en función de si existe o no
+	 * el usuario
+	 * @param [type] $propertyUser
+	 * @return static 	
+	 */
 	public static function get($propertyUser): static{
 		self::hayDB();
 		$query = "SELECT * FROM " . self::TABLENAME . " WHERE ";
@@ -162,6 +196,7 @@ El usuario con los datos:
 	password: {$this->password}
 se ha intentado salvar sin validar previamente
 PRE;
+		Klog::alert($msg);
 		return false;
 	}
 
