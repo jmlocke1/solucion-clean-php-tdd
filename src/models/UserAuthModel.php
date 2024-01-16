@@ -45,6 +45,7 @@ class UserAuthModel {
 		$this->email = $email;
 		$this->password = $password;
 		$validated = $this->validate();
+		
 		return false;
 	}
 

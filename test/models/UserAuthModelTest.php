@@ -32,6 +32,24 @@ class UserAuthModelTest extends DBMock {
 		$this->assertTrue($registrado);
 	}
 
+	/**
+	 * Undocumented function
+	 *
+	 * @dataProvider passwordsToHash
+	 */
+	public function testHassPassword($password){
+		$passwordHashed = UserAuthModel::hashPassword($password);
+		$this->assertIsString($passwordHashed);
+		$this->assertTrue(!empty($passwordHashed));
+	}
+
+	public static function passwordsToHash(){
+		return [
+			['Josemi123'],
+			['paCorro123456']
+		];
+	}
+
 	public function testValidate() {
 		$validated = $this->user->validate();
 		$this->assertTrue($validated);

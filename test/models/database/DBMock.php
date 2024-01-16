@@ -10,13 +10,15 @@ class DBMock extends TestCase {
 			'id' => 1,
 			'username' => 'josemi',
 			'email' => 'josemi@josemi.com',
-			'password' => 'ccc'
+			'password' => '$2y$10$ISWn21sOxa8Z/qovOFo3L.nvk8CkgYyo7UYhrUr/779vlqNvG2INK',
+			'passwordToHash' => 'Josemi123'
 		],
 		'pacorro' => [
 			'id' => 2,
 			'username' => 'pacorro',
 			'email' => 'pacorro@pacorro.com',
-			'password' => '123456'
+			'password' => '$2y$10$iPe4shZQS5cac2uZQiFV9e4QN3pvznkL3u88r4Q1u9PW7HL90fRPa',
+			'passwordToHash' => 'paCorro123456'
 		]
 	];
 	public static $db;
