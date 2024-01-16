@@ -35,10 +35,123 @@ class UserAuthModelTest extends DBMock {
 		];
 		$this->user = new UserAuthModel($datos);
 	}
-	public function testRegister() {
+
+	/**
+	 * Función de alto nivel que depende de otras funciones
+	 * más simples que ya han sido testeadas más abajo
+	 *
+	 * @return void
+	 * @dataProvider registerData
+	 */
+	public function testRegister($values, $returnRegister, $returnSave) {
 		$user = new UserAuthModel();
-		$registrado = $user->register('Pepe', 'pepe@pepeillo.com', 'yomismo');
-		$this->assertTrue($registrado);
+		$registrado = $user->register($values[':username'], $values[':email'], $values[':password']);
+		$this->assertSame($returnRegister, $registrado);
+		// Guardamos el usuario en la base de datos
+		// Pero primero asignamos a $values['password'] el hash recién
+		// creado en el registro
+		$password = $values[':password'];
+		$values[':password'] = $user->password;
+		// Comprobamos el password creado. Si no se ha registrado,
+		// no se ha hasheado el password, por lo que será falso
+		$this->assertSame($returnRegister, password_verify($password, $user->password));
+		$queryForInsert = "INSERT INTO user (username, email, password) VALUES (:username, :email, :password)";
+		$db = $this->createMockForMethod('insertUpdateQuery', $queryForInsert, $values, $returnSave);
+		UserAuthModel::$db = $db;
+		$saved = $user->save();
+		$this->assertSame($returnSave, $saved);
+	}
+
+	public static function registerData(){
+		
+		return [
+			[	// Usuarios existentes se pueden registrar, pero no salvar
+				[
+					':username' => 'josemi',
+					':email' => 'josemi@josemi.com',
+					':password' => 'Josemi123'
+				],
+				true, false
+			],
+			[	// Usuarios existentes se pueden registrar, pero no salvar
+				[
+					':username' => 'pacorro',
+					':email' => 'pacorro@pacorro.com',
+					':password' => 'paCorro123456'
+				],
+				true, false
+			],
+			[	// Usuarios nuevos se pueden registrar y salvar
+				[
+					':username' => 'josemi',
+					':email' => 'josemi@josemi.com',
+					':password' => 'Josemi123'
+				],
+				true, true
+			],
+			[	// Usuarios nuevos se pueden registrar y salvar
+				[
+					':username' => 'pacorro',
+					':email' => 'pacorro@pacorro.com',
+					':password' => 'paCorro123456'
+				],
+				true, true
+			],
+			[	// Usuarios con datos incorrectos no se pueden
+				// registrar ni salvar
+				[
+					':username' => 'josemi',
+					':email' => 'josemijosemi.com',
+					':password' => 'Josemi123'
+				],
+				false, false
+			],
+			[	// Usuarios con datos incorrectos no se pueden
+				// registrar ni salvar
+				[
+					':username' => 'pacorro',
+					':email' => 'pacorropacorro.com',
+					':password' => 'paCorro123456'
+				],
+				false, false
+			],
+			[	// Usuarios con datos incorrectos no se pueden
+				// registrar ni salvar
+				[
+					':username' => 'josemi',
+					':email' => 'josemi@josemicom',
+					':password' => 'Josemi123'
+				],
+				false, false
+			],
+			[	// Usuarios con datos incorrectos no se pueden
+				// registrar ni salvar
+				[
+					':username' => 'pacorro',
+					':email' => 'pacorro@pacorrocom',
+					':password' => 'paCorro123456'
+				],
+				false, false
+			],
+			[	// Usuarios con datos incorrectos no se pueden
+				// registrar ni salvar
+				[
+					':username' => '235',
+					':email' => 'josemi@josemi.com',
+					':password' => 'Josemi123'
+				],
+				false, false
+			],
+			[	// Usuarios con datos incorrectos no se pueden
+				// registrar ni salvar
+				[
+					':username' => 128,
+					':email' => 'pacorro@pacorro.com',
+					':password' => 'paCorro123456'
+				],
+				false, false
+			],
+		];
 	}
 
 	/**
@@ -466,4 +579,124 @@ class UserAuthModelTest extends DBMock {
 			],
 		];
 	}
+
+	/**
+	 * Undocumented function
+	 *
+	 * @param [type] $query
+	 * @param [type] $dataUser
+	 * @param [type] $values
+	 * @param [type] $return
+	 * @return void
+	 * @dataProvider saveData
+	 */
+	public function testSave($query, $dataUser, $values, $return){
+		// Creamos el mock de la base de datos
+		$db = $this->createMockForMethod('insertUpdateQuery', $query, $values, $return);
+		UserAuthModel::$db = $db;
+		$user = new UserAuthModelPrivateToPublic($dataUser);
+		// Actualizamos los datos del usuario
+		$user->username = $values[':username'];
+		$user->email = $values[':email'];
+		$user->password = $values[':password'];
+		$this->assertTrue($user->validate());
+		$this->assertSame($return, $user->save());
+	}
+
+	public static function saveData(){
+		$queryForUpdate = "UPDATE user SET username=:username, email=:email, password=:password WHERE id=:id LIMIT 1";
+		$queryForInsert = "INSERT INTO user (username, email, password) VALUES (:username, :email, :password)";
+		return [
+			[
+				$queryForUpdate,
+				[
+					'id' => 1,
+					'username' => 'josemi',
+					'email' => 'josemi@josemi.com',
+					'password' => '$2y$10$ISWn21sOxa8Z/qovOFo3L.nvk8CkgYyo7UYhrUr/779vlqNvG2INK'
+				], 
+				[
+					':id' => 1,
+					':username' => 'josemi2',
+					':email' => 'josemi2@josemi.com',
+					':password' => '$2y$10$ISWn21sOxa8Z/qovOFo3L.nvk8CkgYyo7UYhrUr/779vlqNvG2INK'
+				], 
+				true
+			],
+			[
+				$queryForUpdate,
+				[
+					'id' => 2,
+					'username' => 'pacorro2',
+					'email' => 'pacorro2@pacorro.com',
+					'password' => '$2y$10$iPe4shZQS5cac2uZQiFV9e4QN3pvznkL3u88r4Q1u9PW7HL90fRPa'
+				], 
+				[
+					':id' => 2,
+					':username' => 'pacorro2',
+					':email' => 'pacorro2@pacorro.com',
+					':password' => '$2y$10$iPe4shZQS5cac2uZQiFV9e4QN3pvznkL3u88r4Q1u9PW7HL90fRPa'
+				], 
+				true
+			],
+			[
+				$queryForInsert,
+				[
+					'username' => 'josemi2',
+					'email' => 'josemi2@josemi.com',
+					'password' => '$2y$10$ISWn21sOxa8Z/qovOFo3L.nvk8CkgYyo7UYhrUr/779vlqNvG2INK'
+				], 
+				[
+					':username' => 'josemi2',
+					':email' => 'josemi2@josemi.com',
+					':password' => '$2y$10$ISWn21sOxa8Z/qovOFo3L.nvk8CkgYyo7UYhrUr/779vlqNvG2INK'
+				], 
+				true
+			],
+			[
+				$queryForInsert,
+				[
+					'username' => 'pacorro2',
+					'email' => 'pacorro2@pacorro.com',
+					'password' => '$2y$10$iPe4shZQS5cac2uZQiFV9e4QN3pvznkL3u88r4Q1u9PW7HL90fRPa'
+				], 
+				[
+					':username' => 'pacorro2',
+					':email' => 'pacorro2@pacorro.com',
+					':password' => '$2y$10$iPe4shZQS5cac2uZQiFV9e4QN3pvznkL3u88r4Q1u9PW7HL90fRPa'
+				], 
+				true
+			],
+			[	// Si insertamos usuarios que existen, debe fallar
+				$queryForInsert,
+				[
+					'username' => 'josemi',
+					'email' => 'josemi@josemi.com',
+					'password' => '$2y$10$ISWn21sOxa8Z/qovOFo3L.nvk8CkgYyo7UYhrUr/779vlqNvG2INK'
+				], 
+				[
+					':username' => 'josemi',
+					':email' => 'josemi@josemi.com',
+					':password' => '$2y$10$ISWn21sOxa8Z/qovOFo3L.nvk8CkgYyo7UYhrUr/779vlqNvG2INK'
+				], 
+				false
+			],
+			[
+				$queryForInsert,
+				[
+					'username' => 'pacorro',
+					'email' => 'pacorro@pacorro.com',
+					'password' => '$2y$10$iPe4shZQS5cac2uZQiFV9e4QN3pvznkL3u88r4Q1u9PW7HL90fRPa'
+				], 
+				[
+					':username' => 'pacorro',
+					':email' => 'pacorro@pacorro.com',
+					':password' => '$2y$10$iPe4shZQS5cac2uZQiFV9e4QN3pvznkL3u88r4Q1u9PW7HL90fRPa'
+				], 
+				false
+			],
+		];
+	}
+
+	
 }

@@ -22,6 +22,8 @@ class UserAuthModel {
 	public string $email;
 	public string $password;
 
+	private bool $validated;
+
 
 	public function __construct($args = null, $db = null)
 	{
@@ -35,7 +37,7 @@ class UserAuthModel {
 		$this->username = $args['username'] ?? '';
 		$this->email = $args['email'] ?? '';
 		$this->password = $args['password'] ?? '';
-
+		$this->validated = false;
 	}
 	// register(){} Correos únicos
 	// login(){}
@@ -47,7 +49,7 @@ class UserAuthModel {
 		if($validated){
 			$this->password = self::hashPassword($password);
 		}
-		return false;
+		return $validated;
 	}
 
 	public static function hashPassword(string $password): string {
@@ -70,6 +72,7 @@ class UserAuthModel {
 		$validate = $validate && !empty(trim($this->username)) && is_string($this->username) && !$this->isNumber($this->username);
 		$validate = $validate && !empty(trim($this->email)) && $this->isEmail($this->email);
 		$validate = $validate && !empty(trim($this->password)) && is_string($this->password);
+		$this->validated = $validate;
 		return $validate;
 	}
 
@@ -138,12 +141,24 @@ class UserAuthModel {
 		if(!isset(self::$db)) self::$db = DB::getDB();
 	}
 
-	public function save(){
+	public function save(): bool {
+		if(!$this->validated) return $this->noValidated();
 		if(isset($this->id)){
 			return $this->update();
 		}else{
 			return $this->insert();
 		}
+	}
+
+	protected function noValidated(): bool {
+		$msg = <<<PRE
+El usuario con los datos:
+	username: {$this->username},
+	email: {$this->email}
+	password: {$this->password}
+se ha intentado salvar sin validar previamente
+PRE;
+		return false;
 	}
 
 	protected function update(): bool {
