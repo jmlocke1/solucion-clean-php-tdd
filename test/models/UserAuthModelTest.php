@@ -177,7 +177,7 @@ class UserAuthModelTest extends DBMock {
 	 */
 	public function testGet($query, $values, $return){
 		// Creamos el mock de la base de datos
-		$db = $this->createMockForSelectAssoc($query, $values, $return);
+		$db = $this->createMockForMethod('selectAssoc', $query, $values, $return);
 		UserAuthModel::$db = $db;
 		// Obtenemos el objeto usuario desde UserAuthModel
 		$user = UserAuthModel::get($values[':propertyUser']);
@@ -215,7 +215,7 @@ class UserAuthModelTest extends DBMock {
 	 */
 	public function testGetWrongParams($query, $values, $return){
 		// Creamos el mock de la base de datos
-		$db = $this->createMockForSelectAssoc($query, $values, $return);
+		$db = $this->createMockForMethod('selectAssoc', $query, $values, $return);
 		UserAuthModel::$db = $db;
 		// Obtenemos el objeto usuario desde UserAuthModel
 		$userModel = new UserAuthModel(null, $db);
@@ -254,7 +254,7 @@ class UserAuthModelTest extends DBMock {
 	 */
 	public function testGetUsers($query, $return) {
 		// Creamos el mock de la base de datos
-		$db = $this->createMockForSelectAssoc($query, null, $return);
+		$db = $this->createMockForMethod('selectAssoc', $query, null, $return);
 		UserAuthModel::$db = $db;
 		// Obtenemos el objeto usuario desde UserAuthModel
 		$users = UserAuthModel::getUsers();
@@ -292,7 +292,7 @@ class UserAuthModelTest extends DBMock {
 	public function testGetUsersWithLimitAndOffset($limit, $offset, $count, $return) {
 		$query = "SELECT * FROM user LIMIT {$limit} OFFSET {$offset}";
 		// Creamos el mock de la base de datos
-		$db = $this->createMockForSelectAssoc($query, null, $return);
+		$db = $this->createMockForMethod('selectAssoc', $query, null, $return);
 		UserAuthModel::$db = $db;
 		// Obtenemos varios usuarios
 		$users = UserAuthModel::getUsers($limit, $offset);
@@ -333,7 +333,7 @@ class UserAuthModelTest extends DBMock {
 	public function testGetUsersOutOfLimits($limit, $offset, $count, $return) {
 		$query = "SELECT * FROM user LIMIT {$limit} OFFSET {$offset}";
 		// Creamos el mock de la base de datos
-		$db = $this->createMockForSelectAssoc($query, null, $return);
+		$db = $this->createMockForMethod('selectAssoc', $query, null, $return);
 		UserAuthModel::$db = $db;
 		// Creamos el objeto UserAuthModel y obtenemos un usuario
 		$users = UserAuthModel::getUsers($limit, $offset);
@@ -374,7 +374,7 @@ class UserAuthModelTest extends DBMock {
 		unset($values[':passwordToHash']);
 		$dataUser['email'] = 's' . $dataUser['email'];
 		// Creamos el mock de la base de datos
-		$db = $this->createMockForInsertUpdateQuery($query, $values, $return);
+		$db = $this->createMockForMethod('insertUpdateQuery', $query, $values, $return);
 		UserAuthModel::$db = $db;
 		$user = new UserAuthModelPrivateToPublic($dataUser);
 		$this->assertSame($return, $user->update());
@@ -401,7 +401,7 @@ class UserAuthModelTest extends DBMock {
 		unset($dataUser['passwordToHash']);
 		unset($dataUser['id']);
 		// Creamos el mock de la base de datos
-		$db = $this->createMockForInsertUpdateQuery($query, $values, $return);
+		$db = $this->createMockForMethod('insertUpdateQuery', $query, $values, $return);
 		UserAuthModel::$db = $db;
 		$user = new UserAuthModelPrivateToPublic($dataUser);
 		$this->assertSame($return, $user->insert());
@@ -429,7 +429,7 @@ class UserAuthModelTest extends DBMock {
 		unset($dataUser['passwordToHash']);
 		unset($dataUser['id']);
 		// Creamos el mock de la base de datos
-		$db = $this->createMockForInsertUpdateQuery($query, $values, $return);
+		$db = $this->createMockForMethod('insertUpdateQuery', $query, $values, $return);
 		UserAuthModel::$db = $db;
 		$user = new UserAuthModelPrivateToPublic($dataUser);
 		$this->assertSame($return, $user->insert());

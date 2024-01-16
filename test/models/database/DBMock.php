@@ -23,19 +23,10 @@ class DBMock extends TestCase {
 	];
 	public static $db;
 
-	public function createMockForSelectAssoc($query, $values, $return){
+	public function createMockForMethod($method, $query, $values, $return) {
 		$db = $this->createMock(DB::class);
 		$db->expects($this->any())
-			->method('selectAssoc')
-			->with($query, $values)
-			->willReturn($return);
-		return $db;
-	}
-
-	public function createMockForInsertUpdateQuery($query, $values, $return){
-		$db = $this->createMock(DB::class);
-		$db->expects($this->any())
-			->method('insertUpdateQuery')
+			->method($method)
 			->with($query, $values)
 			->willReturn($return);
 		return $db;
