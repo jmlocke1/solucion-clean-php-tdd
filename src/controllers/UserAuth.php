@@ -31,4 +31,8 @@ class UserAuth {
 		}
 		return $registered && $saved;
 	}
+
+	public static function login(string $email, string $password): bool {
+		return false;
+	}
 }

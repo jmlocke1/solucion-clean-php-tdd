@@ -34,4 +34,8 @@ class UserAuthTest extends DBMock {
 			"Ha ocurrido un error. Usuario no registrado";
 		$this->expectOutputString($message);
 	}
+
+	public function testLogin(){
+		$this->assertTrue(UserAuth::login('josemi@josemi.com', 'Josemi123'));
+	}
 }
