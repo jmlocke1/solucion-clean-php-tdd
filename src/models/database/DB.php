@@ -103,7 +103,7 @@ class DB {
      */
     public function insertUpdateQuery(string $sql, array $values = null, bool $multiInsert = false): bool {
         $this->ejecutarConsulta($sql, $values, $multiInsert);
-        return isset(self::$msg);
+        return !isset(self::$msg) && self::$affectedRows > 0;
     }
 
 	/**

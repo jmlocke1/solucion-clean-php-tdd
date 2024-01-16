@@ -32,15 +32,50 @@ class DBMock extends TestCase {
 		return $db;
 	}
 
-	public static function getDataUser($username){
-		return [self::$dataUsers[$username]];
+	public function createMockForInsertUpdateQuery($query, $values, $return){
+		$db = $this->createMock(DB::class);
+		$db->expects($this->any())
+			->method('insertUpdateQuery')
+			->with($query, $values)
+			->willReturn($return);
+		return $db;
+	}
+
+	public static function getDataUser($username): array {
+		return [self::getCloneUserData($username)];
+	}
+
+	/**
+	 * Devuelve una copia de los datos de usuario para que los
+	 * datos originales no se vean afectados
+	 *
+	 * @param [type] $username
+	 * @return array
+	 */
+	public static function getCloneUserData($username): array {
+		$dataUser = self::$dataUsers[$username];
+		$data = [];
+		foreach ($dataUser as $key => $value) {
+			$data[$key] = $value;
+		}
+		return $data;
 	}
 
 	public static function getDataUsers(){
 		$users = [];
-		foreach (self::$dataUsers as $dataUser) {
-			$users[] = $dataUser;
+		foreach (self::$dataUsers as $key => $dataUser) {
+			$users[] = self::getCloneUserData($key);
 		}
 		return $users;
+	}
+
+	public static function getDataForInsertUpdate($username){
+		$dataUser = self::$dataUsers[$username];
+		$data = [];
+
+		foreach ($dataUser as $key => $value) {
+			$data[':'.$key] = $value;
+		}
+		return $data;
 	}
 }

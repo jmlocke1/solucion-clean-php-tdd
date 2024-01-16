@@ -3,6 +3,7 @@ namespace Test\models;
 
 require_once __DIR__."/../../src/config/app.php";
 
+use Model\database\DB;
 use Model\UserAuthModel;
 use PHPUnit\Framework\TestCase;
 use Test\models\database\DBMock;
@@ -360,13 +361,109 @@ class UserAuthModelTest extends DBMock {
 		];
 	}
 
-	public function testUpdate(){
-		$user = new UserAuthModelPrivateToPublic();
-		$this->assertTrue($user->update());
+	/**
+	 * Undocumented function
+	 *
+	 * @return void
+	 * @dataProvider updateData
+	 */
+	public function testUpdate($dataUser, $values, $return){
+		$query = "UPDATE user SET username=:username, email=:email, password=:password WHERE id=:id LIMIT 1";
+		// Cambiamos los valores a actualizar
+		$values[':email'] = 's' . $values[':email'];
+		unset($values[':passwordToHash']);
+		$dataUser['email'] = 's' . $dataUser['email'];
+		// Creamos el mock de la base de datos
+		$db = $this->createMockForInsertUpdateQuery($query, $values, $return);
+		UserAuthModel::$db = $db;
+		$user = new UserAuthModelPrivateToPublic($dataUser);
+		$this->assertSame($return, $user->update());
 	}
 
-	public function testInsert(){
-		$user = new UserAuthModelPrivateToPublic();
-		$this->assertTrue($user->insert());
+	public static function updateData(){
+		return [
+			[self::getCloneUserData('josemi'), self::getDataForInsertUpdate('josemi'), true],
+			[self::getCloneUserData('pacorro'), self::getDataForInsertUpdate('pacorro'), true]
+
+		];
+	}
+
+	/**
+	 * Undocumented function
+	 *
+	 * @return void
+	 * @dataProvider insertDataExistingUsers
+	 */
+	public function testInsertExistingUsers($dataUser, $values, $return){
+		$query = "INSERT INTO user (username, email, password) VALUES (:username, :email, :password)";
+		unset($values[':passwordToHash']);
+		unset($values[':id']);
+		unset($dataUser['passwordToHash']);
+		unset($dataUser['id']);
+		// Creamos el mock de la base de datos
+		$db = $this->createMockForInsertUpdateQuery($query, $values, $return);
+		UserAuthModel::$db = $db;
+		$user = new UserAuthModelPrivateToPublic($dataUser);
+		$this->assertSame($return, $user->insert());
+
+	}
+
+	public static function insertDataExistingUsers(){
+		return [
+			// Si intentamos introducir usuarios que ya existen, debe fallar
+			[self::getCloneUserData('josemi'), self::getDataForInsertUpdate('josemi'), false],
+			[self::getCloneUserData('pacorro'), self::getDataForInsertUpdate('pacorro'), false]
+		];
+	}
+
+	/**
+	 * Undocumented function
+	 *
+	 * @return void
+	 * @dataProvider insertData
+	 */
+	public function testInsert($dataUser, $values, $return){
+		$query = "INSERT INTO user (username, email, password) VALUES (:username, :email, :password)";
+		unset($values[':passwordToHash']);
+		unset($values[':id']);
+		unset($dataUser['passwordToHash']);
+		unset($dataUser['id']);
+		// Creamos el mock de la base de datos
+		$db = $this->createMockForInsertUpdateQuery($query, $values, $return);
+		UserAuthModel::$db = $db;
+		$user = new UserAuthModelPrivateToPublic($dataUser);
+		$this->assertSame($return, $user->insert());
+
+	}
+
+	public static function insertData(){
+		return [
+			[
+				[
+					'username' => 'josemi2',
+					'email' => 'josemi2@josemi.com',
+					'password' => '$2y$10$ISWn21sOxa8Z/qovOFo3L.nvk8CkgYyo7UYhrUr/779vlqNvG2INK'
+				], 
+				[
+					':username' => 'josemi2',
+					':email' => 'josemi2@josemi.com',
+					':password' => '$2y$10$ISWn21sOxa8Z/qovOFo3L.nvk8CkgYyo7UYhrUr/779vlqNvG2INK'
+				], 
+				true
+			],
+			[
+				[
+					'username' => 'pacorro2',
+					'email' => 'pacorro2@pacorro.com',
+					'password' => '$2y$10$iPe4shZQS5cac2uZQiFV9e4QN3pvznkL3u88r4Q1u9PW7HL90fRPa'
+				], 
+				[
+					':username' => 'pacorro2',
+					':email' => 'pacorro2@pacorro.com',
+					':password' => '$2y$10$iPe4shZQS5cac2uZQiFV9e4QN3pvznkL3u88r4Q1u9PW7HL90fRPa'
+				], 
+				true
+			],
+		];
 	}
 }

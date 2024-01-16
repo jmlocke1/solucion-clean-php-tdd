@@ -31,7 +31,6 @@ class UserAuthModel {
 			self::$db = DB::getDB();
 		}
 		
-		
 		$this->id = $args['id'] ?? null;
 		$this->username = $args['username'] ?? '';
 		$this->email = $args['email'] ?? '';
@@ -150,24 +149,22 @@ class UserAuthModel {
 	protected function update(): bool {
 		$query = "UPDATE ". self::TABLENAME . " SET username=:username, email=:email, password=:password WHERE id=:id LIMIT 1";
 		$values = [
-			'id' => $this->id,
-			'username' => $this->username,
-			'email' => $this->email,
-			'password' => $this->password
+			':id' => $this->id,
+			':username' => $this->username,
+			':email' => $this->email,
+			':password' => $this->password
 		];
 
-		// return self::$db->insertUpdateQuery($query, $values);
-		return false;
+		return self::$db->insertUpdateQuery($query, $values);
 	}
 
 	protected function insert(): bool {
 		$query = "INSERT INTO ". self::TABLENAME ." (username, email, password) VALUES (:username, :email, :password)";
 		$values = [
-			'username' => $this->username,
-			'email' => $this->email,
-			'password' => $this->password
+			':username' => $this->username,
+			':email' => $this->email,
+			':password' => $this->password
 		];
-		// return self::$db->insertUpdateQuery($query, $values);
-		return false;
+		return self::$db->insertUpdateQuery($query, $values);
 	}
 }
