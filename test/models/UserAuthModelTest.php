@@ -98,8 +98,7 @@ class UserAuthModelTest extends DBMock {
 	 * @dataProvider isNumberData
 	 */
 	public function testIsNumber($value){
-		$user = new UserAuthModelPrivateToPublic();
-		$isNumber = $user->isNumber($value);
+		$isNumber =  UserAuthModelPrivateToPublic::isNumber($value);
 		$this->assertTrue($isNumber);
 	}
 
@@ -114,8 +113,7 @@ class UserAuthModelTest extends DBMock {
 	}
 
 	public function testIsEmail(){
-		$user = new UserAuthModelPrivateToPublic();
-		$isEmail = $user->isEmail('pepe@pepeillo.com');
+		$isEmail = UserAuthModelPrivateToPublic::isEmail('pepe@pepeillo.com');
 		$this->assertTrue($isEmail);
 	}
 
@@ -127,8 +125,7 @@ class UserAuthModelTest extends DBMock {
 	 * @dataProvider isEmailData
 	 */
 	public function testIsNotEmail($value){
-		$user = new UserAuthModelPrivateToPublic();
-		$isEmail = $user->isEmail($value);
+		$isEmail = UserAuthModelPrivateToPublic::isEmail($value);
 		$this->assertFalse($isEmail);
 	}
 
@@ -154,15 +151,15 @@ class UserAuthModelTest extends DBMock {
 	public function testGet($query, $values, $return){
 		// Creamos el mock de la base de datos
 		$db = $this->createMockForSelectAssoc($query, $values, $return);
-		// Creamos el objeto UserAuthModel y obtenemos un usuario
-		$userModel = new UserAuthModel(null, $db);
-		$user = $userModel->get($values[':propertyUser']);
+		UserAuthModel::$db = $db;
+		// Obtenemos el objeto usuario desde UserAuthModel
+		$user = UserAuthModel::get($values[':propertyUser']);
 		// Comprobaciones de clase
 		
 		$this->assertSame(UserAuthModel::class, $user::class);
-		$this->assertSame($db::class, $user->db::class);
+		$this->assertSame($db::class, $user::$db::class);
 		// Comprobación de datos
-		$userData = self::$dataUsers[$user->username];
+		$userData = $return[0];
 		$this->assertSame($userData['id'], $user->id);
 		$this->assertSame($userData['username'], $user->username);
 		$this->assertSame($userData['email'], $user->email);
@@ -192,14 +189,15 @@ class UserAuthModelTest extends DBMock {
 	public function testGetWrongParams($query, $values, $return){
 		// Creamos el mock de la base de datos
 		$db = $this->createMockForSelectAssoc($query, $values, $return);
-		// Creamos el objeto UserAuthModel y obtenemos un usuario
+		UserAuthModel::$db = $db;
+		// Obtenemos el objeto usuario desde UserAuthModel
 		$userModel = new UserAuthModel(null, $db);
-		$user = $userModel->get($values[':propertyUser']);
+		$user = UserAuthModel::get($values[':propertyUser']);
 		// Comprobaciones de clase
 		
 		$this->assertSame(UserAuthModel::class, $user::class);
-		$this->assertSame($db::class, $user->db::class);
-		// Comprobación de datos
+		$this->assertSame($db::class, $user::$db::class);
+		// Comprobación de datos. Deben estar vacíos
 		$this->assertSame(null, $user->id);
 		$this->assertSame('', $user->username);
 		$this->assertSame('', $user->email);
@@ -218,6 +216,122 @@ class UserAuthModelTest extends DBMock {
 		];
 	}
 
-	
+	/**
+	 * Undocumented function
+	 *
+	 * @param [type] $query
+	 * @param [type] $params
+	 * @param [type] $return
+	 * @return void
+	 * @dataProvider getUsersData
+	 */
+	public function testGetUsers($query, $return) {
+		// Creamos el mock de la base de datos
+		$db = $this->createMockForSelectAssoc($query, null, $return);
+		UserAuthModel::$db = $db;
+		// Obtenemos el objeto usuario desde UserAuthModel
+		$users = UserAuthModel::getUsers();
+		$this->assertIsArray($users);
+		$this->assertSame(count(self::$dataUsers), count($users));
+		foreach ($users as $user) {
+			$this->assertSame(UserAuthModel::class, $user::class);
+			$this->assertSame($db::class, $user::$db::class);
+			// Comprobación de datos
+			$userData = self::$dataUsers[$user->username];
+			$this->assertSame($userData['id'], $user->id);
+			$this->assertSame($userData['username'], $user->username);
+			$this->assertSame($userData['email'], $user->email);
+			$this->assertSame($userData['password'], $user->password);
+		}
+		
+	}
+
+	public static function getUsersData(){
+		$query = "SELECT * FROM user";
+		return [
+			[$query, self::getDataUsers()]
+		];
+	}
+
+	/**
+	 * Undocumented function
+	 *
+	 * @param [type] $query
+	 * @param [type] $params
+	 * @param [type] $return
+	 * @return void
+	 * @dataProvider getUsersDataWithLimitAndOffset
+	 */
+	public function testGetUsersWithLimitAndOffset($limit, $offset, $count, $return) {
+		$query = "SELECT * FROM user LIMIT {$limit} OFFSET {$offset}";
+		// Creamos el mock de la base de datos
+		$db = $this->createMockForSelectAssoc($query, null, $return);
+		UserAuthModel::$db = $db;
+		// Obtenemos varios usuarios
+		$users = UserAuthModel::getUsers($limit, $offset);
+		$this->assertIsArray($users);
+		$this->assertSame($count, count($users));
+		foreach ($users as $user) {
+			$this->assertSame(UserAuthModel::class, $user::class);
+			$this->assertSame($db::class, $user::$db::class);
+			// Comprobación de datos
+			$userData = self::$dataUsers[$user->username];
+			$this->assertSame($userData['id'], $user->id);
+			$this->assertSame($userData['username'], $user->username);
+			$this->assertSame($userData['email'], $user->email);
+			$this->assertSame($userData['password'], $user->password);
+		}
+		
+	}
+
+	public static function getUsersDataWithLimitAndOffset(){
+		
+		return [
+			[0, 0, 0, []], // Límite 0 devuelve 0 usuarios
+			[1, 1, 1, self::getDataUser('pacorro')],
+			[1, 0, 1, self::getDataUser('josemi')],
+			[1, 1, 1, self::getDataUser('pacorro')],
+		];
+	}
+
+	/**
+	 * Undocumented function
+	 *
+	 * @param [type] $query
+	 * @param [type] $params
+	 * @param [type] $return
+	 * @return void
+	 * @dataProvider getUsersDataOutOfLimits
+	 */
+	public function testGetUsersOutOfLimits($limit, $offset, $count, $return) {
+		$query = "SELECT * FROM user LIMIT {$limit} OFFSET {$offset}";
+		// Creamos el mock de la base de datos
+		$db = $this->createMockForSelectAssoc($query, null, $return);
+		UserAuthModel::$db = $db;
+		// Creamos el objeto UserAuthModel y obtenemos un usuario
+		$users = UserAuthModel::getUsers($limit, $offset);
+		$this->assertIsArray($users);
+		$this->assertSame($count, count($users));
+		foreach ($users as $user) {
+			$this->assertSame(UserAuthModel::class, $user::class);
+			$this->assertSame($db::class, $user::$db::class);
+			// Comprobación de datos
+			$userData = self::$dataUsers[$user->username];
+			$this->assertSame($userData['id'], $user->id);
+			$this->assertSame($userData['username'], $user->username);
+			$this->assertSame($userData['email'], $user->email);
+			$this->assertSame($userData['password'], $user->password);
+		}
+		
+	}
+
+	public static function getUsersDataOutOfLimits(){
+		
+		return [
+			[0, 0, 0, []], // Límite cero no devuelve nada
+			[0, 1, 0, []],
+			[20, 2, 0, []], // Offset fuera de rango
+		];
+	}
 
 }

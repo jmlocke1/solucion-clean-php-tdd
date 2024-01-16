@@ -33,4 +33,12 @@ class DBMock extends TestCase {
 	public static function getDataUser($username){
 		return [self::$dataUsers[$username]];
 	}
+
+	public static function getDataUsers(){
+		$users = [];
+		foreach (self::$dataUsers as $dataUser) {
+			$users[] = $dataUser;
+		}
+		return $users;
+	}
 }

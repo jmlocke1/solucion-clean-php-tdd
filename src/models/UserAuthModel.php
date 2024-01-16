@@ -11,7 +11,7 @@ use Model\database\DB;
 
 class UserAuthModel {
 	const TABLENAME = 'user';
-	public $db;
+	public static $db;
 	/**
 	 * Hago notar que exponer los campos públicamente no es una buena
 	 * práctica en absoluto, no obstante, dado que es un ejercicio,
@@ -25,7 +25,12 @@ class UserAuthModel {
 
 	public function __construct($args = null, $db = null)
 	{
-		$this->db = $db ?? new DB();
+		if(!is_null($db)){
+			self::$db = $db;
+		}elseif(!isset(self::$db)){
+			self::$db = DB::getDB();
+		}
+		
 		
 		$this->id = $args['id'] ?? null;
 		$this->username = $args['username'] ?? '';
@@ -41,6 +46,10 @@ class UserAuthModel {
 		$this->password = $password;
 		$validated = $this->validate();
 		return false;
+	}
+
+	public static function hashPassword(string $password): string {
+		return password_hash($password, PASSWORD_DEFAULT);
 	}
 
 	/**
@@ -73,6 +82,24 @@ class UserAuthModel {
 		else return is_string($val);
 	}
 
+	
+	public static function get($propertyUser): static{
+		self::hayDB();
+		$query = "SELECT * FROM " . self::TABLENAME . " WHERE ";
+		$query .= "id = :propertyUser OR ";
+		$query .= "username = :propertyUser OR ";
+		$query .= "email = :propertyUser";
+		$values = [':propertyUser' => $propertyUser];
+		try {
+			$result=self::$db->selectAssoc($query, $values);
+		} catch (\Throwable $th) {
+			$result = [];
+		}
+		
+		$data = array_shift($result);
+		return new static($data);
+	}
+
 	/**
 	 * Devuelve un array con los datos de todos los usuarios, con los
 	 * límites establecidos por parámetro
@@ -81,35 +108,31 @@ class UserAuthModel {
 	 * @param integer $offset
 	 * @return void
 	 */
-	public function getUsers(int $limit = 0, int $offset = 0){
+	public static function getUsers(int $limit = -1, int $offset = 0): array{
+		self::hayDB();
 		$query = "SELECT * FROM " . self::TABLENAME;
-		if($limit > 0){
+		if($limit >= 0){
 			$query .= " LIMIT {$limit} OFFSET {$offset}";
 		}
-		$values = [
-			':limit' => $limit
-		];
-		$result=$this->db->selectAssoc($query);
-		return $this->getObjects($result, $this->db);
+		try {
+			$result=self::$db->selectAssoc($query);
+		} catch (\Throwable $th) {
+			$result = [];
+		}
+		
+		return self::getObjects($result);
 	}
 
 
-	public function get($propertyUser): static{
-		$query = "SELECT * FROM " . self::TABLENAME . " WHERE ";
-		$query .= "id = :propertyUser OR ";
-		$query .= "username = :propertyUser OR ";
-		$query .= "email = :propertyUser";
-		$values = [':propertyUser' => $propertyUser];
-		$result=$this->db->selectAssoc($query, $values);
-		$data = array_shift($result);
-		return new $this($data, $this->db);
-	}
-
-	protected function getObjects(array $data): array {
+	protected static function getObjects(array $data): array {
 		$objects = [];
 		foreach($data as $dataObject){
-			$objects[] = new $this($dataObject, $this->db);
+			$objects[] = new static($dataObject, self::$db);
 		}
 		return $objects;
+	}
+
+	protected static function hayDB(){
+		if(!isset(self::$db)) self::$db = DB::getDB();
 	}
 }

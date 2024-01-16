@@ -6,31 +6,53 @@ use Util\Klog;
 use App\config\Config;
 
 class DB {
-	public static $conexion;
+	protected $conexion;
     protected static $msg;
     protected static $affectedRows;
 
-	public function __construct($conexion = null)
-	{
-		if(is_null($conexion)){
-			self::conectar();
-		}
+    // Gestor de conexiones
+    protected static $dbManager = [];
+
+	public function __construct(
+        $host = Config::DB_HOST,
+        $dbName = Config::DB_NAME,
+        $dbEncode = Config::DB_ENCODE,
+        $dbUsername = Config::DB_USERNAME,
+        $dbPassword = Config::DB_PASSWORD
+    ){
+		$this->conexion = self::conectar($host, $dbName, $dbEncode, $dbUsername, $dbPassword);
 	}
+
+    public static function getDB(
+        $host = Config::DB_HOST,
+        $dbName = Config::DB_NAME,
+        $dbEncode = Config::DB_ENCODE,
+        $dbUsername = Config::DB_USERNAME,
+        $dbPassword = Config::DB_PASSWORD
+    ){
+        if(isset(self::$dbManager[$host][$dbName])){
+            return self::$dbManager[$host][$dbName];
+        }else{
+            self::$dbManager[$host][$dbName] = new static($host, $dbName, $dbEncode, $dbUsername, $dbPassword);
+            return self::$dbManager[$host][$dbName];
+        }
+    }
 
 	/**
      * Conecta con la base de datos con los datos que hay en Config.php
      */
-    protected static function conectar(){
-        $dsn = "mysql:host=".Config::DB_HOST.";dbname=".Config::DB_NAME.";charset=".Config::DB_ENCODE;
+    protected static function conectar($host, $dbName, $dbEncode, $dbUsername, $dbPassword): PDO{
+        $dsn = "mysql:host=".$host.";dbname=".$dbName.";charset=".$dbEncode;
         try {
-            self::$conexion = new PDO($dsn, Config::DB_USERNAME, Config::DB_PASSWORD);
-            self::$conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $conexion = new PDO($dsn, $dbUsername, $dbPassword);
+            $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         } catch (\PDOException $exc) {
             self::$msg = "Error: ".$exc->getMessage() . " Conectando a la base de datos<br>";
             self::$msg .= $exc->getTraceAsString();
             Klog::error(self::$msg);
         }
+        return $conexion;
     }
 
 	/**
@@ -46,7 +68,7 @@ class DB {
         $exito = true;
         self::$affectedRows = 0;
         try {
-            $stmt = self::$conexion->prepare($sql);
+            $stmt = $this->conexion->prepare($sql);
             if($multiInsert){
                 foreach ($valores as $value) {
                     $exito = $exito && $stmt->execute($value);
@@ -88,7 +110,15 @@ class DB {
         return $resultado;
     }
 
-	public function selectObject($sql, $valores = null) {
+    /**
+     * Undocumented function
+     *
+     * @param [type] $sql
+     * @param [type] $valores
+     * @return array
+     * @throws Exception
+     */
+	public function selectObject($sql, $valores = null): array {
         $resp = $this->ejecutarConsulta($sql, $valores);
         $resultado = [];
         while($fila = $resp->fetch(PDO::FETCH_OBJ)){
@@ -103,8 +133,12 @@ class DB {
      * @throws Exception
      */
     public static function hayError() {
-        if(isset(self::$msg)){
+        if(!empty(self::$msg)){
             throw new \Exception(self::$msg);
         }
+    }
+
+    public static function getMsg(){
+        return self::$msg;
     }
 }
