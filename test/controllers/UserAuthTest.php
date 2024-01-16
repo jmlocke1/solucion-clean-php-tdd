@@ -34,8 +34,26 @@ class UserAuthTest extends DBMock {
 			"Ha ocurrido un error. Usuario no registrado";
 		$this->expectOutputString($message);
 	}
-
-	public function testLogin(){
-		$this->assertTrue(UserAuth::login('josemi@josemi.com', 'Josemi123'));
+	/**
+	 * Undocumented function
+	 *
+	 * @return void
+	 * @dataProvider Test\models\UserAuthModelTest::loginData
+	 */
+	public function testLogin($email, $password, $dataUser, $result){
+		$queryGet = "SELECT * FROM user WHERE id = :propertyUser OR username = :propertyUser OR email = :propertyUser";
+		$valGet = [':propertyUser' => $email];
+		
+		
+		$db = $this->createMockForMethod('selectAssoc', $queryGet, $valGet, $dataUser);
+		$db = $this->createMockForMethodWithoutEntries('insertUpdateQuery', $result, $db);
+		
+		UserAuthModel::$db = $db;
+		$logged = UserAuth::login($email, $password);
+		$this->assertSame($result, $logged);
+		$message = $logged ?
+			"Ha iniciado sesión correctamente" :
+			"Ha ocurrido un error. No se ha iniciado la sesión";
+		$this->expectOutputString($message);
 	}
 }

@@ -33,6 +33,13 @@ class UserAuth {
 	}
 
 	public static function login(string $email, string $password): bool {
-		return false;
+		$user = new UserAuthModel();
+		$logged = $user->login($email, $password);
+		if($logged){
+			echo "Ha iniciado sesión correctamente";
+		}else{
+			echo "Ha ocurrido un error. No se ha iniciado la sesión";
+		}
+		return $logged;
 	}
 }
